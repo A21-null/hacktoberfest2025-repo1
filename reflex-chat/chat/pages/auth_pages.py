@@ -7,6 +7,21 @@ def login_page() -> rx.Component:
         rx.vstack(
             rx.heading("Breogan", size="6", color="#2563eb"),
             rx.heading("Iniciar sesión", size="4", color="#64748b"),
+            rx.cond(
+                State.login_error,
+                rx.text(
+                    State.login_error,
+                    color="#ef4444",
+                    font_size="sm",
+                    text_align="center",
+                    padding="8px",
+                    background_color="#fef2f2",
+                    border="1px solid #fecaca",
+                    border_radius="6px",
+                    width="100%",
+                ),
+                rx.fragment(),
+            ),
             rx.form(
                 rx.vstack(
                     rx.input(
@@ -40,6 +55,7 @@ def login_page() -> rx.Component:
                 ),
                 id="login-form",
                 on_submit=State.login,
+                reset_on_submit=True,
             ),
             rx.link(
                 "¿No tienes cuenta? Regístrate",

@@ -34,6 +34,7 @@ class State(rx.State):
     login_modal_open: bool = False
     register_modal_open: bool = False
     current_user: str | None = None
+    login_error: str = ""
     
     # UI state
     voice_modal_open: bool = False
@@ -85,9 +86,13 @@ class State(rx.State):
         password = form_data.get("password")
         if username == "admin" and password == "admin":
             self.current_user = username
+            self.login_error = ""
+            self.login_modal_open = False
+            # Redirect to main page after successful login
+            return rx.redirect("/")
         else:
-            # invalid credentials; do not set user
-            pass
+            # invalid credentials; show error
+            self.login_error = "Credenciais incorrectas. Usa admin/admin"
         self.login_modal_open = False
 
     @rx.event
@@ -99,9 +104,13 @@ class State(rx.State):
         """
         email = form_data.get("email")
         name = form_data.get("name")
-        if email:
+        username = form_data.get("username")  # Get username from form
+        if username and form_data.get("password"):
             # Pretend registration succeeded and set current_user
-            self.current_user = name or email
+            self.current_user = name or username or email
+            self.register_modal_open = False
+            # Redirect to main page after successful registration
+            return rx.redirect("/")
         self.register_modal_open = False
 
     @rx.event
