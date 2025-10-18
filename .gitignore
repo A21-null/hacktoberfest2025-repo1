@@ -1,5 +1,16 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
+*.db
+*.py[cod]
+.states
+.web
+assets/external/
+
+# Reflex specific files
+**/.states/
+**/.web/
+**/node_modules/
+**/package-lock.json
+**/bun.lockb
+**/*.db
 *.py[codz]
 *$py.class
 
@@ -144,6 +155,19 @@ ENV/
 env.bak/
 venv.bak/
 
+# Backend environment files with API keys
+backend/.env
+app/.env
+
+# FastAPI and Uvicorn
+*.pid
+*.log
+
+# Reflex build artifacts
+**/frontend.zip
+**/backend.zip
+**/dist/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -182,9 +206,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#  and can be added to the global gitignore or merged into this file. However, if you prefer,
 #  you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 
@@ -205,3 +229,25 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project specific temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Audio files (for Whisper testing)
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.flac
+
+# Model cache files
+**/.cache/
+**/models/
+whisper_models/
+
+# Test files and outputs
+test_output/
+*.test.log
