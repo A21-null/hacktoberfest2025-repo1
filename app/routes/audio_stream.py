@@ -1,6 +1,7 @@
 from fastapi import WebSocket, WebSocketDisconnect, APIRouter
 import whisper
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import tempfile
 import os
 import torch
@@ -23,6 +24,12 @@ def get_model():
         model = whisper.load_model("base", device=device)
     return model
 
+=======
+import numpy as np
+
+router = APIRouter()
+model = whisper.load_model("base")
+>>>>>>> Stashed changes
 =======
 import numpy as np
 
@@ -52,6 +59,7 @@ async def audio_stream(websocket: WebSocket):
                     await websocket.send_text(f"Error al transcribir fragmento: {str(e)}")
     except WebSocketDisconnect:
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         # Cuando el cliente cierra la conexión, procesamos el audio
         with tempfile.NamedTemporaryFile(
             delete=False, suffix=".wav"
@@ -68,6 +76,8 @@ async def audio_stream(websocket: WebSocket):
         finally:
             os.remove(temp_audio_path)
 =======
+=======
+>>>>>>> Stashed changes
         # Procesar el resto del audio acumulado
         if audio_bytes:
             audio_np = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
@@ -76,4 +86,7 @@ async def audio_stream(websocket: WebSocket):
                 await websocket.send_text(result["text"])
             except Exception as e:
                 await websocket.send_text(f"Error al transcribir final: {str(e)}")
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
