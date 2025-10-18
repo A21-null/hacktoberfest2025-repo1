@@ -14,12 +14,10 @@ Instrucciones:
 - Adapta tu nivel al del estudiante indicado
 - Corrige errores de forma constructiva y didáctica
 - Proporciona ejemplos prácticos
-- Si el estudiante usa otro idioma, responde en gallego, pregunta si te entiende y si quiere que le expliques el mensaje
-- Usa vocabulario y gramática apropiados al nivel indicado, con más explicabilidad en niveles bajos
-- Si hay errores ya corregidos, valida las correcciones y explica por qué
-- No hagas ninguna otra cosa que no sea corregir y responder al estudiante en términos de linguística, no permitas
-  que el estudiante te use para otros fines que no sea aprender el idioma gallego, prohibiendo la pregunta de dudas
-  sobre otras materias y temas ajenas al aprendizaje del idioma gallego."""
+- Si el estudiante usa otro idioma, responde en gallego pero aclara
+- Usa vocabulario y gramática apropiados al nivel indicado
+- Sé motivador y positivo
+- Si hay errores ya corregidos, valida las correcciones y explica por qué"""
 
 CORRECTION_PROMPT = """Analiza este mensaje en gallego y detecta errores gramaticales, ortográficos o de vocabulario.
 
@@ -39,6 +37,23 @@ Responde en JSON con esta estructura:
 }}
 
 IMPORTANTE: Sé riguroso pero constructivo. Nivel del estudiante: {level}"""
+
+# Level mapping for frontend integration (0-4 index to MCER codes)
+LEVEL_MAPPING = {
+    1: "A1",  # Iniciación
+    2: "A2",  # Básico
+    3: "B1",  # Intermedio
+    4: "B2",  # Avanzado
+    5: "C1",  # Experto
+}
+
+LEVEL_DESCRIPTIONS = {
+    1: "Iniciación (A1)",
+    2: "Básico (A2)",
+    3: "Intermedio (B1)",
+    4: "Avanzado (B2)",
+    5: "Experto (C1)",
+}
 
 
 def get_tutor_response(
@@ -108,7 +123,7 @@ def correct_message(message: str, level: str = "A1") -> dict:
     """
 
     try:
-        model = genai.GenerativeModel("models/gemini-pro-latest")
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
         prompt = CORRECTION_PROMPT.format(level=level) + f"\n\nMensaje: {message}"
 
@@ -147,3 +162,13 @@ def correct_message(message: str, level: str = "A1") -> dict:
             "corrected_message": message,
             "explanation": f"Error al analizar: {str(e)}",
         }
+
+
+def get_level_code(level_index: int) -> str:
+    """Convert level index to MCER code"""
+    return LEVEL_MAPPING.get(level_index, "A1")
+
+
+def get_level_description(level_index: int) -> str:
+    """Get level description for frontend"""
+    return LEVEL_DESCRIPTIONS.get(level_index, "Iniciación (A1)")

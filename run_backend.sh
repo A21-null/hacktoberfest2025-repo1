@@ -3,8 +3,8 @@
 # Activate the virtual environment
 source ~/venv_hacktober25/bin/activate
 
-# Navigate to the app directory
-cd "$(dirname "$0")/app"
+# Navigate to the backend directory
+cd "$(dirname "$0")/backend"
 
 # Set environment variables
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/.."
@@ -14,6 +14,9 @@ if [ -f .env ]; then
     export $(cat .env | xargs)
 fi
 
-# Run the FastAPI backend
-echo "Starting FastAPI backend on http://localhost:8000"
+# Run the integrated FastAPI backend
+echo "Starting Galician Tutor Backend on http://localhost:8000"
+echo "API Documentation available at: http://localhost:8000/docs"
+echo "Backend integrates with Reflex frontend for Gemini AI responses"
+echo ""
 python main.py

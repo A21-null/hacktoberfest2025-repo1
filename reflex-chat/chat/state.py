@@ -1,8 +1,9 @@
 from typing import Any, TypedDict
 import asyncio
 import reflex as rx
-
-# # Checkin Exception("Please set OPENAI_API_KEY environment variable.")
+import httpx
+import json
+import random
 
 
 class QA(TypedDict):
@@ -38,6 +39,11 @@ class State(rx.State):
     voice_modal_open: bool = False
     profile_modal_open: bool = False
     selected_level: int = 1
+    flashcard_modal_open: bool = False
+    current_flashcard: dict = {}
+    
+    # Backend integration
+    backend_url: str = "http://127.0.0.1:8000"
 
     @rx.event
     def create_chat(self, form_data: dict[str, Any]):
@@ -118,6 +124,64 @@ class State(rx.State):
         """Set the selected language level."""
         self.selected_level = level
 
+    @rx.event
+    def set_flashcard_modal_open(self, is_open: bool):
+        """Open or close the flashcard modal."""
+        self.flashcard_modal_open = is_open
+        
+    @rx.event
+    def show_random_flashcard(self):
+        """Show a random flashcard from the gl-phrases.json file."""
+        import json
+        import random
+        import os
+        
+        try:
+            # Load the phrases from the JSON file
+            # Use a hardcoded list for now since file loading might be tricky in Reflex
+            phrases = [
+                {"gl": "Bo día", "es": "Buenos días"},
+                {"gl": "Boas tardes", "es": "Buenas tardes"},
+                {"gl": "Boas noites", "es": "Buenas noches"},
+                {"gl": "Ata logo", "es": "Hasta luego"},
+                {"gl": "Apertas", "es": "Abrazos"},
+                {"gl": "Que aproveite", "es": "Que aproveche"},
+                {"gl": "Saúdos", "es": "Saludos"},
+                {"gl": "Ter morriña", "es": "Sentir nostalgia"},
+                {"gl": "Botarlle unha man", "es": "Echar una mano"},
+                {"gl": "De balde", "es": "Gratis"},
+                {"gl": "Non é doado", "es": "No es fácil"},
+                {"gl": "Ir indo", "es": "Ir tirando"},
+                {"gl": "Quedar abraiado", "es": "Quedarse asombrado"},
+                {"gl": "Ollo!", "es": "¡Cuidado!"},
+                {"gl": "Veña", "es": "Venga / anda"},
+                {"gl": "Xa veremos", "es": "Ya veremos"},
+                {"gl": "Un chisco", "es": "Un poco"},
+                {"gl": "Non hai perda", "es": "No tiene pérdida"},
+                {"gl": "Estar farto", "es": "Estar harto"},
+                {"gl": "Botar en falta", "es": "Echar de menos"}
+            ]
+                    
+            if phrases:
+                # Select a random phrase
+                selected_phrase = random.choice(phrases)
+                self.current_flashcard = selected_phrase
+                self.flashcard_modal_open = True
+            else:
+                # Fallback if list is empty
+                self.current_flashcard = {
+                    "gl": "Bo día",
+                    "es": "Buenos días"
+                }
+                self.flashcard_modal_open = True
+        except Exception:
+            # Fallback in case of any error
+            self.current_flashcard = {
+                "gl": "Bo día",
+                "es": "Buenos días"
+            }
+            self.flashcard_modal_open = True
+
     @rx.var
     def selected_chat(self) -> list[QA]:
         """Get the list of questions and answers for the current chat.
@@ -185,10 +249,10 @@ class State(rx.State):
 
     @rx.event
     async def openai_process_question(self, question: str):
-        """Get the response from the API.
+        """Get the response from the Galician tutor API.
 
         Args:
-            form_data: A dict with the current question.
+            question: The question from the user.
         """
 
         # Add the question to the list of questions.
@@ -198,23 +262,47 @@ class State(rx.State):
         # Clear the input and start the processing.
         self.processing = True
         yield
-        # Build a mock Galician tutor response.
-    # For frontend-only work, we simulate streaming by yielding
-    # after chunks.
-        mock_response = (
-            "Moi ben! Esto é unha resposta de exemplo en galego. "
-            "Vou darte correccións e explicacións breves para axudarche a "
-            "aprender.\n\n"
-            "1. Saúdos: 'Ola' é equivalente a 'Hola' en español.\n"
-            "2. Gramática: 'teño' significa 'tengo'.\n"
-            "3. Exercicio: Traduce '¿Cómo estás?' ao galego.\n"
-            "Boa sorte e segue practicando!"
-        )
 
-    # Stream character by character (or in small chunks) to simulate
-    # realtime typing.
-        for i in range(0, len(mock_response), 8):
-            chunk = mock_response[i:i + 8]
+        try:
+            # Prepare request to backend
+            user_id = self.current_user or "anonymous"
+            level_index = self.selected_level
+            
+            request_data = {
+                "user_id": user_id,
+                "message": question,
+                "level_index": level_index,
+                "mode": "conversation"
+            }
+
+            # Make API call to backend
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.backend_url}/api/chat/message",
+                    json=request_data,
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    tutor_response = result.get("tutor_response", "Error: No response from tutor")
+                    
+                    # Show corrections if any
+                    if result.get("has_errors", False):
+                        corrections_text = "\n**Correccións:**\n"
+                        for correction in result.get("corrections", []):
+                            corrections_text += f"• '{correction['error']}' → '{correction['correction']}' ({correction['explanation']})\n"
+                        tutor_response = corrections_text + "\n" + tutor_response
+                    
+                else:
+                    tutor_response = "Error: Non se puido conectar co titor. Téntao de novo."
+                    
+        except Exception as e:
+            tutor_response = f"Error de conexión: {str(e)}"
+
+        # Stream character by character to simulate realtime typing.
+        for i in range(0, len(tutor_response), 8):
+            chunk = tutor_response[i:i + 8]
             self._chats[self.current_chat][-1]["answer"] += chunk
             # Trigger reactivity
             self._chats = self._chats

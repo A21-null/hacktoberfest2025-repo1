@@ -138,6 +138,26 @@ def top_navbar() -> rx.Component:
             rx.hstack(
                 rx.button(
                     rx.hstack(
+                        rx.icon("book", size=16, color="white"),
+                        rx.text(
+                            "Flashcards", 
+                            color="white", 
+                            font_size="sm"
+                        ),
+                        spacing="2",
+                        align_items="center",
+                    ),
+                    background_color="rgba(255, 255, 255, 0.1)",
+                    border="none",
+                    padding="8px 16px",
+                    border_radius="8px",
+                    _hover={"background_color": "rgba(255, 255, 255, 0.2)"},
+                    on_click=State.show_random_flashcard,
+                    display="flex",
+                    align_items="center",
+                ),
+                rx.button(
+                    rx.hstack(
                         rx.icon("mic", size=16, color="white"),
                         rx.text(
                             "Modo conversación", 
@@ -188,6 +208,81 @@ def top_navbar() -> rx.Component:
         z_index="100",
         display="flex",
         align_items="center",
+    )
+
+
+def flashcard_modal() -> rx.Component:
+    """Modal for displaying Galician flashcards."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title(
+                "Flashcard Galego",
+                color="#1e40af",
+                font_weight="700",
+                text_align="center",
+            ),
+            rx.vstack(
+                rx.box(
+                    rx.text(
+                        State.current_flashcard["gl"],
+                        color="#1e40af",
+                        font_weight="600",
+                        font_size="xl",
+                        text_align="center",
+                        margin_bottom="12px",
+                    ),
+                    rx.text(
+                        State.current_flashcard["es"],
+                        color="#64748b",
+                        font_size="lg",
+                        text_align="center",
+                        font_style="italic",
+                    ),
+                    background_color="#f8fafc",
+                    padding="24px",
+                    border_radius="12px",
+                    border="2px solid #e2e8f0",
+                    margin_bottom="24px",
+                    width="100%",
+                    text_align="center",
+                ),
+                rx.hstack(
+                    rx.button(
+                        "Nova frase",
+                        background_color="#2563eb",
+                        color="white",
+                        border="none",
+                        padding="8px 24px",
+                        border_radius="8px",
+                        _hover={"background_color": "#1d4ed8"},
+                        on_click=State.show_random_flashcard,
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            "Pechar",
+                            background_color="#f1f5f9",
+                            color="#64748b",
+                            border="none",
+                            padding="8px 24px",
+                            border_radius="8px",
+                            _hover={"background_color": "#e2e8f0"},
+                        ),
+                    ),
+                    spacing="3",
+                    justify_content="center",
+                    align_items="center",
+                ),
+                spacing="4",
+                align_items="center",
+                width="100%",
+            ),
+            max_width="400px",
+            padding="32px",
+            background_color="white",
+            border_radius="12px",
+        ),
+        open=State.flashcard_modal_open,
+        on_open_change=State.set_flashcard_modal_open,
     )
 
 
