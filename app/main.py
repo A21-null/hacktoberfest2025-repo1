@@ -15,8 +15,12 @@ app.add_middleware(
 
 # Importar rutas
 from app.routes.chat import router as chat_router
+from app.routes.audio import router as audio_router
+from app.routes.audio_stream import router as audio_stream_router
 
 app.include_router(chat_router, prefix="/api/chat", tags=["chat"])
+app.include_router(audio_router, prefix="/api/audio", tags=["audio"])
+app.include_router(audio_stream_router)
 
 @app.get("/")
 def root():
