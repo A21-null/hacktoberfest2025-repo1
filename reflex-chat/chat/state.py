@@ -42,6 +42,8 @@ class State(rx.State):
     selected_level: int = 1
     flashcard_modal_open: bool = False
     current_flashcard: dict = {}
+    selected_text: str = ""
+    create_flashcard_modal_open: bool = False
     
     # Backend integration
     backend_url: str = "http://127.0.0.1:8000"
@@ -137,6 +139,117 @@ class State(rx.State):
     def set_flashcard_modal_open(self, is_open: bool):
         """Open or close the flashcard modal."""
         self.flashcard_modal_open = is_open
+        
+    @rx.event
+    def set_create_flashcard_modal_open(self, is_open: bool):
+        """Open or close the create flashcard modal."""
+        self.create_flashcard_modal_open = is_open
+        
+    @rx.event
+    def handle_text_selection(self, selected_text: str):
+        """Handle text selection for flashcard creation."""
+        if selected_text and len(selected_text.strip()) > 0:
+            self.selected_text = selected_text.strip()
+            self.create_flashcard_modal_open = True
+            
+    @rx.event
+    def handle_flashcard_input_creation(self, qa_index: int):
+        """Handle flashcard creation from input field."""
+        # This will be called with JavaScript to get the input value
+        pass
+        
+    @rx.event
+    def create_flashcard_from_text(self, text: str):
+        """Create flashcard from provided text."""
+        if text and len(text.strip()) > 0:
+            self.selected_text = text.strip()
+            self.create_flashcard_modal_open = True
+            
+    @rx.event
+    async def create_flashcard_from_selection(self):
+        """Create a new flashcard from selected text using Gemini."""
+        if not self.selected_text:
+            return
+            
+        try:
+            # Make API call to backend to generate explanation
+            user_id = self.current_user or "anonymous"
+            level_index = self.selected_level
+            
+            request_data = {
+                "user_id": user_id,
+                "message": f"Explica brevemente en galego e en español esta palabra ou frase: '{self.selected_text}'",
+                "level_index": level_index,
+                "mode": "vocabulary"
+            }
+
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.backend_url}/api/chat/message",
+                    json=request_data,
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    explanation = result.get("tutor_response", "Explicación non dispoñible")
+                    
+                    # Create new flashcard entry
+                    new_flashcard = {
+                        "gl": self.selected_text,
+                        "es": explanation,
+                        "user_created": True,
+                        "created_by": user_id,
+                        "level": level_index
+                    }
+                    
+                    # Save to JSON file (simulate for now)
+                    await self.save_flashcard_to_file(new_flashcard)
+                    
+                    # Show success message
+                    self.current_flashcard = new_flashcard
+                    self.create_flashcard_modal_open = False
+                    self.flashcard_modal_open = True
+                    
+                else:
+                    # Handle error
+                    pass
+                    
+        except Exception as e:
+            # Handle error
+            pass
+            
+        # Reset selection
+        self.selected_text = ""
+        
+    @rx.event
+    async def save_flashcard_to_file(self, flashcard: dict):
+        """Save flashcard to JSON file (simulated for now)."""
+        # In a real implementation, this would save to the actual file
+        # For now, we'll just add it to our in-memory list
+        import json
+        import os
+        
+        try:
+            # Path to the flashcards file
+            file_path = "assets/gl-phrases.json"
+            
+            # Try to read existing flashcards
+            existing_flashcards = []
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    existing_flashcards = json.load(f)
+            
+            # Add new flashcard
+            existing_flashcards.append(flashcard)
+            
+            # Write back to file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(existing_flashcards, f, ensure_ascii=False, indent=2)
+                
+        except Exception as e:
+            # If file operations fail, just continue
+            pass
         
     @rx.event
     def show_random_flashcard(self):

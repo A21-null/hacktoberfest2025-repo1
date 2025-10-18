@@ -211,6 +211,86 @@ def top_navbar() -> rx.Component:
     )
 
 
+def create_flashcard_modal() -> rx.Component:
+    """Modal for creating flashcards from selected text."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title(
+                "Crear Nova Flashcard",
+                color="#1e40af",
+                font_weight="700",
+                text_align="center",
+            ),
+            rx.vstack(
+                rx.text(
+                    "Texto seleccionado:",
+                    color="#64748b",
+                    font_weight="500",
+                    font_size="sm",
+                    margin_bottom="8px",
+                ),
+                rx.box(
+                    rx.text(
+                        State.selected_text,
+                        color="#1e40af",
+                        font_weight="600",
+                        font_size="lg",
+                        text_align="center",
+                    ),
+                    background_color="#f8fafc",
+                    padding="16px",
+                    border_radius="8px",
+                    border="1px solid #e2e8f0",
+                    margin_bottom="24px",
+                    width="100%",
+                ),
+                rx.text(
+                    "Xerarase unha explicación automática usando Gemini AI",
+                    color="#64748b",
+                    font_size="sm",
+                    text_align="center",
+                    margin_bottom="16px",
+                ),
+                rx.hstack(
+                    rx.button(
+                        "Crear Flashcard",
+                        background_color="#2563eb",
+                        color="white",
+                        border="none",
+                        padding="8px 24px",
+                        border_radius="8px",
+                        _hover={"background_color": "#1d4ed8"},
+                        on_click=State.create_flashcard_from_selection,
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancelar",
+                            background_color="#f1f5f9",
+                            color="#64748b",
+                            border="none",
+                            padding="8px 24px",
+                            border_radius="8px",
+                            _hover={"background_color": "#e2e8f0"},
+                        ),
+                    ),
+                    spacing="3",
+                    justify_content="center",
+                    align_items="center",
+                ),
+                spacing="4",
+                align_items="center",
+                width="100%",
+            ),
+            max_width="450px",
+            padding="32px",
+            background_color="white",
+            border_radius="12px",
+        ),
+        open=State.create_flashcard_modal_open,
+        on_open_change=State.set_create_flashcard_modal_open,
+    )
+
+
 def flashcard_modal() -> rx.Component:
     """Modal for displaying Galician flashcards."""
     return rx.dialog.root(

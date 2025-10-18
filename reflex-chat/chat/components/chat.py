@@ -4,6 +4,50 @@ from chat.state import QA, State
 from reflex.constants.colors import ColorType
 
 
+def tutor_message_content(text: str, qa_index: int = 0) -> rx.Component:
+    """Create a tutor message content component with flashcard creation.
+
+    Args:
+        text: The text to display.
+        qa_index: Index of the QA pair for identification.
+
+    Returns:
+        A component displaying the tutor message with flashcard creation.
+    """
+    return rx.box(
+        rx.markdown(
+            text,
+            background_color="rgba(59, 130, 246, 0.9)",
+            color="white",
+            display="inline-block",
+            padding="16px 20px",
+            border_radius="16px",
+            max_width="80%",
+            font_size="16px",
+            line_height="1.5",
+            box_shadow="0 2px 8px rgba(0, 0, 0, 0.1)",
+            user_select="text",
+        ),
+        # Simple button to create flashcard
+        rx.button(
+            rx.icon("plus", size=12),
+            rx.text("Crear flashcard", font_size="xs"),
+            background_color="rgba(255, 255, 255, 0.2)",
+            border="none",
+            padding="4px 8px",
+            border_radius="6px",
+            color="white",
+            font_size="xs",
+            margin_top="4px",
+            _hover={"background_color": "rgba(255, 255, 255, 0.3)"},
+            display="flex",
+            align_items="center",
+            gap="4px",
+            on_click=lambda: State.create_flashcard_from_text("Exemplo"),
+        ),
+    )
+
+
 def message_content(text: str, color: ColorType) -> rx.Component:
     """Create a message content component.
 
@@ -32,11 +76,12 @@ def message_content(text: str, color: ColorType) -> rx.Component:
     )
 
 
-def message(qa: QA) -> rx.Component:
+def message(qa: QA, index: int = 0) -> rx.Component:
     """A single question/answer message.
 
     Args:
         qa: The question/answer pair.
+        index: Index of the message for identification.
 
     Returns:
         A component displaying the question/answer pair.
@@ -48,7 +93,8 @@ def message(qa: QA) -> rx.Component:
             margin_bottom="12px",
         ),
         rx.box(
-            message_content(qa["answer"], "accent"),
+            # Use special tutor message for answers (from Gemini)
+            tutor_message_content(qa["answer"], index),
             text_align="left",
             margin_bottom="20px",
         ),
@@ -106,7 +152,7 @@ def chat() -> rx.Component:
             rx.vstack(
                 rx.foreach(
                     State.selected_chat,
-                    message,
+                    lambda qa, index: message(qa, index),
                 ),
                 spacing="0",
                 width="100%",

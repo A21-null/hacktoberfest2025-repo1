@@ -56,6 +56,7 @@ def index() -> rx.Component:
         sidebar.voice_modal(),
         sidebar.profile_modal(),
         sidebar.flashcard_modal(),
+        sidebar.create_flashcard_modal(),
         position="relative",
         width="100%",
         height="100vh",
